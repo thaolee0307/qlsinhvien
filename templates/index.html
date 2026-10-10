@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sinh viên</title>
+    <style>
+            
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+    }
+
+    form label {
+        display: block;
+        margin-top: 8px;
+    }
+
+    form input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px;
+    }
+
+    form button {
+        padding: 10px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f2f5fa;
+        }
+
+        h1 {
+            text-align: center;
+            color: #174ea6;
+        }
+
+        .danh-sach {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #e2eafa;
+        }
+    </style>
+</head>
+<body>
+    <h1>QUẢN LÝ SINH VIÊN</h1>
+
+    <form action="/them" method="POST">
+        <h2>Thêm sinh viên</h2>
+
+        <label>Mã sinh viên:</label>
+        <input type="text" name="masv" required>
+
+        <label>Họ và tên:</label>
+        <input type="text" name="hoten" required>
+
+        <label>Ngày sinh:</label>
+        <input type="date" name="ngaysinh">
+
+        <label>Lớp:</label>
+        <input type="text" name="lop">
+
+        <button type="submit">Thêm sinh viên</button>
+</form>
+
+    <div class="danh-sach">
+        <h2>Danh sách sinh viên</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã SV</th>
+                    <th>Họ tên</th>
+                    <th>Ngày sinh</th>
+                    <th>Lớp</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sv in danh_sach %}
+                <tr>
+                    <td>{{ sv.MASV }}</td>
+                    <td>{{ sv.HOTEN }}</td>
+                    <td>{{ sv.NGAYSINH }}</td>
+                    <td>{{ sv.LOP }}</td>
+                    <td>
+                        <form action="{{ url_for('xoa', masv=sv.MASV) }}"
+                            method="POST"
+                            onsubmit="return confirm('Bạn có chắc muốn xóa sinh viên này không?');">
+                            <button type="submit">Xóa</button>
+                        </form>
+                    </td>
+                    </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">Chưa có dữ liệu sinh viên</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
