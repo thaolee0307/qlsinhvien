@@ -1,32 +1,52 @@
-from flask import Flask, render_template, request, redirect, url_for
-import mysql.connector
 
-app = Flask(__name__)
+from flask import Flask, render_template, request, redirect, url_for
+import psycopg
+from psycopg.rows import dict_row
 import os
 
-def ket_noi_mysql():
-    return mysql.connector.connect(
-        host=os.environ.get("DB_HOST", "127.0.0.1"),
-        user=os.environ.get("DB_USER", "root"),
-        password=os.environ.get("DB_PASSWORD", ""),
-        database=os.environ.get("DB_NAME", "THONGTINSV"),
-        port=int(os.environ.get("DB_PORT", "3306"))
+app = Flask(__name__)
+
+
+def ket_noi_db():
+    return psycopg.connect(
+        os.environ["DATABASE_URL"],
+        row_factory=dict_row,
+        sslmode="require"
     )
+
+
+def tao_bang():
+    conn = ket_noi_db()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS sinhvien (
+                    masv VARCHAR(20) PRIMARY KEY,
+                    hoten VARCHAR(100) NOT NULL,
+                    ngaysinh DATE,
+                    lop VARCHAR(50)
+                )
+            """)
+        conn.commit()
+    finally:
+        conn.close()
+
 
 @app.route("/")
 def home():
-    conn = ket_noi_mysql()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute(
-        "SELECT MASV, HOTEN, NGAYSINH, LOP FROM SINHVIEN"
-    )
-    danh_sach = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
+    conn = ket_noi_db()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT masv, hoten, ngaysinh, lop "
+                "FROM sinhvien ORDER BY masv"
+            )
+            danh_sach = cursor.fetchall()
+    finally:
+        conn.close()
 
     return render_template("index.html", danh_sach=danh_sach)
+
 
 @app.route("/them", methods=["POST"])
 def them():
@@ -34,36 +54,44 @@ def them():
     hoten = request.form["hoten"]
     ngaysinh = request.form["ngaysinh"] or None
     lop = request.form["lop"]
-    conn = ket_noi_mysql()
-    cursor = conn.cursor()
 
-    cursor.execute(
-        """INSERT INTO SINHVIEN (MASV, HOTEN, NGAYSINH, LOP)
-           VALUES (%s, %s, %s, %s)""",
-        (masv, hoten, ngaysinh, lop)
-    )
-
-    conn.commit()
-    cursor.close()
-    conn.close()
+    conn = ket_noi_db()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO sinhvien (masv, hoten, ngaysinh, lop)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (masv, hoten, ngaysinh, lop)
+            )
+        conn.commit()
+    finally:
+        conn.close()
 
     return redirect(url_for("home"))
+
 
 @app.route("/xoa/<masv>", methods=["POST"])
 def xoa(masv):
-    conn = ket_noi_mysql()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "DELETE FROM SINHVIEN WHERE MASV = %s",
-        (masv,)
-    )
-
-    conn.commit()
-    cursor.close()
-    conn.close()
+    conn = ket_noi_db()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM sinhvien WHERE masv = %s",
+                (masv,)
+            )
+        conn.commit()
+    finally:
+        conn.close()
 
     return redirect(url_for("home"))
+
+
+# Tao bang khi ung dung khoi dong
+with app.app_context():
+    tao_bang()
+
 
 if __name__ == "__main__":
     app.run(debug=True)
