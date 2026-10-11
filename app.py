@@ -36,7 +36,7 @@ def home():
     conn = ket_noi_db()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(
+            cursor.execute("""
                 SELECT 
                     masv AS "MASV",
                     hoten AS "HOTEN",
@@ -44,7 +44,7 @@ def home():
                     lop AS "LOP",
                 FROM sinhvien
                 ORDER BY masv
-            )
+                """)
             danh_sach = cursor.fetchall()
     finally:
         conn.close()
