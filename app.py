@@ -37,11 +37,11 @@ def home():
     try:
         with conn.cursor() as cursor:
             cursor.execute(
-                SELECT
-                masv AS "MASV",
-                hoten AS "HOTEN",
-                ngaysinh AS "NGAYSINH",
-                lop AS "LOP"
+                SELECT 
+                    masv AS "MASV",
+                    hoten AS "HOTEN",
+                    ngaysinh AS "NGAYSINH",
+                    lop AS "LOP",
                 FROM sinhvien
                 ORDER BY masv
             )
