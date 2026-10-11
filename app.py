@@ -41,7 +41,7 @@ def home():
                     masv AS "MASV",
                     hoten AS "HOTEN",
                     ngaysinh AS "NGAYSINH",
-                    lop AS "LOP",
+                    lop AS "LOP"
                 FROM sinhvien
                 ORDER BY masv
                 """)
