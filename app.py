@@ -6,7 +6,6 @@ import os
 
 app = Flask(__name__)
 
-
 def ket_noi_db():
     return psycopg.connect(
         os.environ["DATABASE_URL"],
@@ -38,8 +37,13 @@ def home():
     try:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT masv, hoten, ngaysinh, lop "
-                "FROM sinhvien ORDER BY masv"
+                SELECT
+                masv AS "MASV",
+                hoten AS "HOTEN",
+                ngaysinh AS "NGAYSINH",
+                lop AS "LOP"
+                FROM sinhvien
+                ORDER BY masv
             )
             danh_sach = cursor.fetchall()
     finally:
