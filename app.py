@@ -1,56 +1,53 @@
 
 from flask import Flask, render_template, request, redirect, url_for
-import psycopg
-from psycopg.rows import dict_row
-import os
+import mysql.connector
 
 app = Flask(__name__)
 
+
 def ket_noi_db():
-    return psycopg.connect(
-        os.environ["DATABASE_URL"],
-        row_factory=dict_row,
-        sslmode="require"
+    return mysql.connector.connect(
+        host="127.0.0.1",
+        user="root",
+        password="Thaoancut2103@",
+        database="THONGTINSV"
     )
 
 
 def tao_bang():
     conn = ket_noi_db()
     try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS sinhvien (
-                    masv VARCHAR(20) PRIMARY KEY,
-                    hoten VARCHAR(100) NOT NULL,
-                    ngaysinh DATE,
-                    lop VARCHAR(50)
-                )
-            """)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS SINHVIEN (
+                MASV VARCHAR(20) PRIMARY KEY,
+                HOTEN VARCHAR(100) NOT NULL,
+                NGAYSINH DATE,
+                LOP VARCHAR(50)
+            )
+        """)
         conn.commit()
+        cursor.close()
     finally:
         conn.close()
+
 
 
 @app.route("/")
 def home():
     conn = ket_noi_db()
     try:
-        with conn.cursor() as cursor:
+        with conn.cursor(dictionary=True) as cursor:
             cursor.execute("""
-                SELECT 
-                    masv AS "MASV",
-                    hoten AS "HOTEN",
-                    ngaysinh AS "NGAYSINH",
-                    lop AS "LOP"
-                FROM sinhvien
-                ORDER BY masv
-                """)
+                SELECT MASV, HOTEN, NGAYSINH, LOP
+                FROM SINHVIEN
+                ORDER BY MASV
+            """)
             danh_sach = cursor.fetchall()
     finally:
-        conn.close()
+            conn.close()
 
     return render_template("index.html", danh_sach=danh_sach)
-
 
 @app.route("/them", methods=["POST"])
 def them():
@@ -61,15 +58,13 @@ def them():
 
     conn = ket_noi_db()
     try:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO sinhvien (masv, hoten, ngaysinh, lop)
-                VALUES (%s, %s, %s, %s)
-                """,
-                (masv, hoten, ngaysinh, lop)
-            )
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO SINHVIEN (MASV, HOTEN, NGAYSINH, LOP)
+            VALUES (%s, %s, %s, %s)
+        """, (masv, hoten, ngaysinh, lop))
         conn.commit()
+        cursor.close()
     finally:
         conn.close()
 
@@ -80,22 +75,19 @@ def them():
 def xoa(masv):
     conn = ket_noi_db()
     try:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM sinhvien WHERE masv = %s",
-                (masv,)
-            )
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM SINHVIEN WHERE MASV = %s",
+            (masv,)
+        )
         conn.commit()
+        cursor.close()
     finally:
         conn.close()
 
     return redirect(url_for("home"))
 
 
-# Tao bang khi ung dung khoi dong
-with app.app_context():
-    tao_bang()
-
-
 if __name__ == "__main__":
+    tao_bang()
     app.run(debug=True)
